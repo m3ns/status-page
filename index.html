@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MHMD Status</title>
+  <style>
+    body { font-family: Arial; background:#0f172a; color:white; text-align:center; }
+    .ok { color: #22c55e; }
+    .bad { color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<h1>MHMD Status</h1>
+
+<div>
+  Homepage: <span id="home">checking...</span><br>
+  API: <span id="api">checking...</span>
+</div>
+
+<script>
+async function check(url, id) {
+  try {
+    let res = await fetch(url, { method: "GET", cache: "no-store" });
+    document.getElementById(id).innerHTML =
+      res.ok ? "<span class='ok'>ONLINE</span>" : "<span class='bad'>DOWN</span>";
+  } catch {
+    document.getElementById(id).innerHTML = "<span class='bad'>DOWN</span>";
+  }
+}
+
+check("https://mhmd.be", "home");
+check("https://mhmd.be/api/health", "api");
+</script>
+
+</body>
+</html>
