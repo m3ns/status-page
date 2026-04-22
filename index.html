@@ -1,173 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>MHMD Status - Server Monitor</title>
-  <meta http-equiv="refresh" content="30">
-  <style>
-    body {
-      font-family: 'Courier New', monospace;
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      padding: 50px;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: #1e293b;
-      padding: 30px;
-      border-radius: 15px;
-    }
-    .ok { color: #22c55e; font-weight: bold; }
-    .bad { color: #ef4444; font-weight: bold; }
-    .sleep { color: #f59e0b; font-weight: bold; }
-    .status-box {
-      font-size: 2em;
-      margin: 15px;
-      padding: 15px;
-      border-radius: 10px;
-    }
-    .awake { background: #22c55e20; border: 2px solid #22c55e; }
-    .asleep { background: #f59e0b20; border: 2px solid #f59e0b; }
-    .offline { background: #ef444420; border: 2px solid #ef4444; }
-    .online { background: #22c55e20; border: 2px solid #22c55e; }
-    .last-check { color: #94a3b8; font-size: 0.8em; margin-top: 20px; }
-    button {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    button:hover { background: #2563eb; }
-    .service {
-      margin: 20px 0;
-      padding: 15px;
-      background: #0f172a;
-      border-radius: 10px;
-    }
-    .service-name {
-      font-size: 1.2em;
-      margin-bottom: 10px;
-      color: #94a3b8;
-    }
-    hr {
-      border-color: #334155;
-      margin: 20px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Status - mhmd.be</title>
 </head>
 <body>
-  <div class="container">
-    <h1>🖥️ MHMD Server Status</h1>
-    
-    <!-- mhmd.be Website Status -->
-    <div class="service">
-      <div class="service-name">🌐 Website (mhmd.be)</div>
-      <div id="website-status" class="status-box">Checking...</div>
-      <p id="website-text">loading...</p>
-    </div>
+    <main>
+        <h2>Status - mhmd.be</h2>
+        <table>
+            <head>
+                <tr>
+                    <th>website</th>
+                    <th>status</th>
+                </tr>
+            </head>
 
-    <hr>
+            <tbody id="status-body">
+            </tbody>
+        </table>
+    </main>
 
-    <!-- Old PC Status -->
-    <div class="service">
-      <div class="service-name">🖥️ Old PC (Storage Server)</div>
-      <div id="oldpc-status" class="status-box">Checking...</div>
-      <p id="oldpc-text">loading...</p>
-    </div>
-    
-    <p id="timestamp" class="last-check"></p>
-    
-    <button onclick="checkAll()">⟳ Refresh Now</button>
-    <p class="last-check">Auto-refreshes every 30 seconds</p>
-  </div>
-
-  <script>
-    async function checkWebsite() {
-      const statusDiv = document.getElementById('website-status');
-      const textSpan = document.getElementById('website-text');
-      
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch('https://mhmd.be', { 
-          method: 'HEAD',
-          cache: 'no-store',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (response.ok) {
-          statusDiv.innerHTML = '✅ ONLINE';
-          statusDiv.className = 'status-box online';
-          textSpan.innerHTML = '<span class="ok">Online</span> - Website is accessible';
-        } else {
-          statusDiv.innerHTML = '❌ OFFLINE';
-          statusDiv.className = 'status-box offline';
-          textSpan.innerHTML = '<span class="bad">Offline</span> - Website returned error';
-        }
-      } catch (error) {
-        statusDiv.innerHTML = '❌ OFFLINE';
-        statusDiv.className = 'status-box offline';
-        textSpan.innerHTML = '<span class="bad">Offline</span> - Website is not responding';
-      }
-    }
-
-    async function checkOldPC() {
-      const statusDiv = document.getElementById('oldpc-status');
-      const textSpan = document.getElementById('oldpc-text');
-      
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch('https://api.mhmd.be/api/pc-status', {
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        const data = await response.json();
-        
-        if (data.status === 'awake') {
-          statusDiv.innerHTML = '✅ AWAKE';
-          statusDiv.className = 'status-box awake';
-          textSpan.innerHTML = '<span class="ok">Online</span> - Server is ready';
-        } else if (data.status === 'asleep') {
-          statusDiv.innerHTML = '💤 ASLEEP';
-          statusDiv.className = 'status-box asleep';
-          textSpan.innerHTML = '<span class="sleep">Sleeping</span> - First request takes ~30 seconds';
-        } else {
-          statusDiv.innerHTML = '❌ OFFLINE';
-          statusDiv.className = 'status-box offline';
-          textSpan.innerHTML = '<span class="bad">Unreachable</span>';
-        }
-      } catch (error) {
-        statusDiv.innerHTML = '❌ ERROR';
-        statusDiv.className = 'status-box offline';
-        textSpan.innerHTML = '<span class="bad">Cannot reach API</span>';
-      }
-    }
-    
-    async function checkAll() {
-      const now = new Date().toLocaleTimeString();
-      document.getElementById('timestamp').innerHTML = `Last checked: ${now}`;
-      
-      await Promise.all([
-        checkWebsite(),
-        checkOldPC()
-      ]);
-    }
-    
-    // Run initial check
-    checkAll();
-    
-    // Auto-refresh every 30 seconds
-    setInterval(checkAll, 30000);
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
