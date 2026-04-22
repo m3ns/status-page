@@ -1,36 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MHMD Status</title>
+  <title>MHMD Status - Server Monitor</title>
+  <meta http-equiv="refresh" content="30">
   <style>
-    body { font-family: Arial; background:#0f172a; color:white; text-align:center; }
-    .ok { color: #22c55e; }
-    .bad { color: #ef4444; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      padding: 50px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #1e293b;
+      padding: 30px;
+      border-radius: 15px;
+    }
+    .ok { color: #22c55e; font-weight: bold; }
+    .bad { color: #ef4444; font-weight: bold; }
+    .sleep { color: #f59e0b; font-weight: bold; }
+    .status-box {
+      font-size: 3em;
+      margin: 20px;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .awake { background: #22c55e20; border: 2px solid #22c55e; }
+    .asleep { background: #f59e0b20; border: 2px solid #f59e0b; }
+    .offline { background: #ef444420; border: 2px solid #ef4444; }
+    .last-check { color: #94a3b8; font-size: 0.8em; margin-top: 20px; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { background: #2563eb; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>🖥️ Server Status Monitor</h1>
+    
+    <div id="oldpc-status" class="status-box">Checking...</div>
+    
+    <p>
+      Old PC: <span id="oldpc-text">loading...</span>
+    </p>
+    
+    <p id="timestamp" class="last-check"></p>
+    
+    <button onclick="checkStatus()">⟳ Refresh Now</button>
+    <p class="last-check">Auto-refreshes every 30 seconds</p>
+  </div>
 
-<h1>MHMD Status</h1>
-
-<div>
-  Homepage: <span id="home">checking...</span><br>
-  <!--API: <span id="api">checking...</span>-->
-</div>
-
-<script>
-async function check(url, id) {
-  try {
-    let res = await fetch(url, { method: "GET", cache: "no-store" });
-    document.getElementById(id).innerHTML =
-      res.ok ? "<span class='ok'>ONLINE</span>" : "<span class='bad'>DOWN</span>";
-  } catch {
-    document.getElementById(id).innerHTML = "<span class='bad'>DOWN</span>";
-  }
-}
-
-check("https://mhmd.be", "home");
-//check("https://mhmd.be/api/health", "api");
-</script>
-
+  <script>
+    async function checkStatus() {
+      const oldpcDiv = document.getElementById('oldpc-status');
+      const oldpcText = document.getElementById('oldpc-text');
+      const timestampDiv = document.getElementById('timestamp');
+      
+      try {
+        // Fetch from your Pi's API
+        const response = await fetch('https://api.mhmd.be/api/pc-status');
+        const data = await response.json();
+        
+        const now = new Date().toLocaleTimeString();
+        timestampDiv.innerHTML = `Last checked: ${now}`;
+        
+        if (data.status === 'awake') {
+          oldpcDiv.innerHTML = '✅ AWAKE';
+          oldpcDiv.className = 'status-box awake';
+          oldpcText.innerHTML = '<span class="ok">Online</span> - Server is ready';
+        } else if (data.status === 'asleep') {
+          oldpcDiv.innerHTML = '💤 ASLEEP';
+          oldpcDiv.className = 'status-box asleep';
+          oldpcText.innerHTML = '<span class="sleep">Sleeping</span> - First request takes ~30 seconds';
+        } else {
+          oldpcDiv.innerHTML = '❌ OFFLINE';
+          oldpcDiv.className = 'status-box offline';
+          oldpcText.innerHTML = '<span class="bad">Unreachable</span>';
+        }
+      } catch (error) {
+        oldpcDiv.innerHTML = '❌ ERROR';
+        oldpcDiv.className = 'status-box offline';
+        oldpcText.innerHTML = '<span class="bad">Cannot reach API</span>';
+        timestampDiv.innerHTML = `Error: ${error.message}`;
+      }
+    }
+    
+    checkStatus();
+    setInterval(checkStatus, 30000);
+  </script>
 </body>
 </html>
