@@ -1,6 +1,5 @@
 const websites = [
-  { name: "mhmd.be", url: "https://mhmd.be" },
-  { name: "test.mhmd.be", url: "https://test.mhmd.be" },
+  { name: "mhmd.be", url: "https://mhmd.be" }
 ];
 
 const tbody = document.getElementById("status-body");
