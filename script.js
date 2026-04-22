@@ -24,21 +24,12 @@ function createRow(site, i) {
 
 async function checkWebsite(url) {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(
+      `https://t27dntv9n7.workers.dev/?url=${encodeURIComponent(url)}`
+    );
 
-    await fetch(url, {
-      method: "GET",
-      mode: "no-cors",
-      cache: "no-store",
-      signal: controller.signal
-    });
-
-    clearTimeout(timeout);
-
-    // NOTE:
-    // We cannot truly verify content in browser-only mode
-    return true;
+    const data = await res.json();
+    return data.ok;
 
   } catch (e) {
     return false;
