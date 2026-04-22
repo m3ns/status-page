@@ -91,37 +91,30 @@
       const textSpan = document.getElementById('website-text');
       
       try {
-        // Try to fetch the website
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const response = await fetch('https://mhmd.be', { 
-          method: 'GET',
-          mode: 'no-cors',
-          cache: 'no-store'
+          method: 'HEAD',
+          cache: 'no-store',
+          signal: controller.signal
         });
         
-        // With no-cors, we can't see the response, so we assume it's up if no error
-        statusDiv.innerHTML = '✅ ONLINE';
-        statusDiv.className = 'status-box online';
-        textSpan.innerHTML = '<span class="ok">Online</span> - Website is accessible';
-      } catch (error) {
-        // Try alternative method - check if we can reach the domain
-        try {
-          const imgTest = new Image();
-          imgTest.src = 'https://mhmd.be/favicon.ico?' + Date.now();
-          
-          await new Promise((resolve, reject) => {
-            imgTest.onload = resolve;
-            imgTest.onerror = reject;
-            setTimeout(reject, 5000);
-          });
-          
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
           statusDiv.innerHTML = '✅ ONLINE';
           statusDiv.className = 'status-box online';
           textSpan.innerHTML = '<span class="ok">Online</span> - Website is accessible';
-        } catch {
+        } else {
           statusDiv.innerHTML = '❌ OFFLINE';
           statusDiv.className = 'status-box offline';
-          textSpan.innerHTML = '<span class="bad">Offline</span> - Website is not responding';
+          textSpan.innerHTML = '<span class="bad">Offline</span> - Website returned error';
         }
+      } catch (error) {
+        statusDiv.innerHTML = '❌ OFFLINE';
+        statusDiv.className = 'status-box offline';
+        textSpan.innerHTML = '<span class="bad">Offline</span> - Website is not responding';
       }
     }
 
@@ -130,8 +123,14 @@
       const textSpan = document.getElementById('oldpc-text');
       
       try {
-        // Fetch from your Pi's API
-        const response = await fetch('https://api.mhmd.be/api/pc-status');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const response = await fetch('https://api.mhmd.be/api/pc-status', {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
         const data = await response.json();
         
         if (data.status === 'awake') {
