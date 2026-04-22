@@ -23,28 +23,17 @@ async function checkWebsite(url) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
-    const res = await fetch(url, {
-      method: "GET",   // IMPORTANT: not HEAD
+    await fetch(url, {
+      method: "GET",
+      mode: "no-cors",
       cache: "no-store",
       signal: controller.signal
     });
 
-    const text = await res.text();
-
     clearTimeout(timeout);
 
-    // ❌ detect Cloudflare error page
-    if (
-      text.includes("Cloudflare Tunnel error") ||
-      text.includes("Ray ID") ||
-      text.includes("unable to resolve") ||
-      text.includes("Error 1033")
-    ) {
-      return false;
-    }
-
-    // fallback: normal OK page
-    return res.ok;
+    // If we got here → network reachable
+    return true;
 
   } catch (e) {
     return false;
