@@ -22,18 +22,12 @@ function createRow(site, i) {
   tbody.appendChild(row);
 }
 
+const WORKER = "https://status-checker.t27dntv9n7.workers.dev";
+
 async function checkWebsite(url) {
-  try {
-    const res = await fetch(
-      `https://t27dntv9n7.workers.dev/?url=${encodeURIComponent(url)}`
-    );
-
-    const data = await res.json();
-    return data.ok;
-
-  } catch (e) {
-    return false;
-  }
+  const res = await fetch(`${WORKER}/?url=${encodeURIComponent(url)}`);
+  const data = await res.json();
+  return data.ok;
 }
 
 async function updateStatuses() {
